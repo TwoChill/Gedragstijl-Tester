@@ -41,17 +41,16 @@ class BehaviorStyleTest:
             self.statements[int(key)] = (statements, styles)
 
     def calculate_biggest_quadrant(self):
-        dominant_quadrant = ""
-        max_score = max(self.scores, key=self.scores.get)
+        # Define a dictionary to map quadrant scores to names
+        quadrant_names = {
+            'Relator': self.scores['I'] * self.scores['O'],
+            'Social': self.scores['O'] * self.scores['D'],
+            'Directive': self.scores['D'] * self.scores['S'],
+            'Thinker': self.scores['S'] * self.scores['I']
+        }
 
-        if max_score == "I":
-            dominant_quadrant = "Thinker"
-        elif max_score == "O":
-            dominant_quadrant = "Relator"
-        elif max_score == "D":
-            dominant_quadrant = "Directive"
-        elif max_score == "S":
-            dominant_quadrant = "Social"
+        # Determine the dominant quadrant using the max function
+        dominant_quadrant = max(quadrant_names, key=quadrant_names.get)
 
         return dominant_quadrant
 
@@ -103,12 +102,12 @@ class BehaviorStyleTest:
                 continue
 
         # Calculate quadrant coordinates based on the scores
-        self.calculate_quadrant_coordinates()
+        self.calculate_quadrant_coordinates() # IS GOOD
 
         ax_number = 10
 
         # Determine the largest quadrant
-        biggest_quadrant = self.calculate_biggest_quadrant()
+        biggest_quadrant = self.calculate_biggest_quadrant() # IS GOOD
 
         # Inner lines and labels
         for i in range(1, ax_number):
