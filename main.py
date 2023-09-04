@@ -1,18 +1,34 @@
-import questions
+import questions, descriptions
+import textwrap
 import matplotlib.pyplot as plt
 import os
 
 # Introductory explanation
 intro_text = '''Behavior Style Test
 
-This is an interactive questionnaire that helps you understand your personal behavior style.
-You'll choose the answer that best describes you for each of the 18 questions.
-You have two options to choose from each time.
-Select what suits you best - NOTE! - the questions only appear once!
-After answering all the questions, your dominant behavior style will be revealed.\n'''
+Welcome to the Behavior Style Assessment!
+
+This interactive questionnaire is designed to provide insights into your unique behavior style. 
+For each of the 18 questions, select the answer that most accurately reflects you.
+Keep in mind that each question is presented only once.
+You'll have two options to choose from on each question, so pick the one that resonates with you the most.
+Once you've completed all the questions, your dominant behavior style will be unveiled.\n'''
+
 
 def clear_screen():
+    """Clear the screen."""
     os.system('cls' if os.name == 'nt' else 'clear')
+
+def make_bold(text):
+    return "\033[1m" + text + "\033[0m"
+
+def print_behavior_style_results(text, max_line_width=100):
+    # Split the text into paragraphs
+    paragraphs = text.split(' .')  # Assume paragraphs are separated by two newlines
+    for paragraph in paragraphs:
+        wrapped_lines = textwrap.wrap(paragraph, width=max_line_width)
+        for lines in wrapped_lines:
+            print(lines)
 
 class BehaviorStyleTest:
     def __init__(self):
@@ -26,21 +42,16 @@ class BehaviorStyleTest:
         }
         self.load_statements_from_config()
 
-    def print_scores(self):
-        print("Score Summary:")
-        print(f"Thinker (I): {self.scores['I']}")
-        print(f"Stable (S): {self.scores['S']}")
-        print(f"Directive (D): {self.scores['D']}")
-        print(f"Relator (O): {self.scores['O']}")
-
     def load_statements_from_config(self):
+        """Load the statements from the config file."""
         # Import statements from the questions.py file
         for key, value in questions.Statements.items():
             statements = value["statements"]
             styles = value["styles"]
             self.statements[int(key)] = (statements, styles)
 
-    def calculate_biggest_quadrant(self):
+    def get_dominant_styles(self):
+        """Determine the dominant quadrant."""
         # Define a dictionary to map quadrant scores to names
         quadrant_names = {
             'Relator': self.scores['I'] * self.scores['O'],
@@ -48,34 +59,104 @@ class BehaviorStyleTest:
             'Directive': self.scores['D'] * self.scores['S'],
             'Thinker': self.scores['S'] * self.scores['I']
         }
-
         # Determine the dominant quadrant using the max function
-        dominant_quadrant = max(quadrant_names, key=quadrant_names.get)
+        dominant_style = max(quadrant_names, key=quadrant_names.get)
 
-        return dominant_quadrant
+        return dominant_style
 
     def calculate_quadrant_coordinates(self):
+        """Calculate the quadrant coordinates and add them to the quadrants dictionary."""
         for quadrant in self.quadrants:
             if quadrant == 'Relator':
-                self.quadrants[quadrant]['x_coords'] = [-self.scores['I'], 0, self.scores['D'], 0]
-                self.quadrants[quadrant]['y_coords'] = [0, self.scores['O'], 0, -self.scores['S']]
+                self.quadrants[quadrant]['x_coords'] = [-self.scores['I'],
+                                                        0, self.scores['D'], 0]
+                self.quadrants[quadrant]['y_coords'] = [
+                    0, self.scores['O'], 0, -self.scores['S']]
             elif quadrant == 'Social':
-                self.quadrants[quadrant]['x_coords'] = [0, self.scores['I'], 0, -self.scores['D']]
-                self.quadrants[quadrant]['y_coords'] = [-self.scores['O'], 0, self.scores['S'], 0]
+                self.quadrants[quadrant]['x_coords'] = [
+                    0, self.scores['I'], 0, -self.scores['D']]
+                self.quadrants[quadrant]['y_coords'] = [-self.scores['O'],
+                                                        0, self.scores['S'], 0]
             elif quadrant == 'Directive':
-                self.quadrants[quadrant]['x_coords'] = [self.scores['I'], 0, -self.scores['D'], 0]
-                self.quadrants[quadrant]['y_coords'] = [0, -self.scores['O'], 0, self.scores['S']]
+                self.quadrants[quadrant]['x_coords'] = [
+                    self.scores['I'], 0, -self.scores['D'], 0]
+                self.quadrants[quadrant]['y_coords'] = [
+                    0, -self.scores['O'], 0, self.scores['S']]
             elif quadrant == 'Thinker':
-                self.quadrants[quadrant]['x_coords'] = [0, -self.scores['I'], 0, self.scores['D']]
-                self.quadrants[quadrant]['y_coords'] = [self.scores['O'], 0, -self.scores['S'], 0]
+                self.quadrants[quadrant]['x_coords'] = [
+                    0, -self.scores['I'], 0, self.scores['D']]
+                self.quadrants[quadrant]['y_coords'] = [
+                    self.scores['O'], 0, -self.scores['S'], 0]
 
-    def run_test(self):
-        question_number = 1
+
+    def show_behavior_results(self, dominant_styles):
+        """Display detailed information about a behavior style."""
+
+        # Check if key exists in dictionary 'unique_descriptions'
+        behavior_data = explanation.unique_descriptions.get(dominant_styles)
+
+        if behavior_data is None:
+            print("Behavior style not found.")
+            return
+
+        # Assuming you have a clear_screen() function to clear the screen.
+        clear_screen()
+
+        # Print the description
+        print(make_bold(dominant_styles) + "\n")
+
+        # Print description of behavior
+        print_behavior_style_results(behavior_data['Description'])
+
+        # Create space between description and questions
+        print()
+
+        # Print core qualities
+        print(make_bold("Core Qualities:"))
+        for quality in behavior_data['Core Qualities']:
+            print(quality)
+        print()
+
+        # Print pitfalls
+        print(make_bold("Pitfalls:"))
+        for pitfall in behavior_data['Pitfalls']:
+            print(pitfall)
+        print()
+
+        # Print challenges
+        print(make_bold("Challenges:"))
+        for challenge in behavior_data['Challenges']:
+            print(challenge)
+        print()
+
+        # Print allergies
+        print(make_bold("Allergies:"))
+        for allergy in behavior_data['Allergies']:
+            print(allergy)
+        print()
+
+    def behavior_style_assesment(self):
+        """
+        Runs the test for the user.
+
+        This function displays the intro text and waits for the user to press Enter to begin the test.
+        It then iterates through each question, displays the question number and the two formatted statements.
+        The user is prompted to choose either option 1 or option 2.
+        The chosen answer is recorded and the scores for the corresponding styles are updated.
+        If an invalid choice is made, the user is prompted to choose again.
+        After all questions have been answered, the quadrant coordinates are calculated based on the scores.
+        The largest quadrant is determined and the inner lines and labels are plotted.
+        The values of I, O, D, S are plotted against the inner grid.
+        The points are connected in clockwise order to form a shape.
+        The title, axis limits, and numbers for the middle of the grid lines are added.
+        Finally, the plot is displayed.
+        """
 
         print(intro_text)
         input("Good luck!\n\nPress Enter to begin...")
         clear_screen()
 
+        question_number = 1
         question_numbers = list(self.statements.keys())
 
         for question_num in question_numbers:
@@ -92,6 +173,7 @@ class BehaviorStyleTest:
             clear_screen()
 
             try:
+                # Update scores
                 chosen_styles = styles.split(',')
                 chosen_answer = int(choice) - 1
                 for index, style in enumerate(chosen_styles):
@@ -102,27 +184,40 @@ class BehaviorStyleTest:
                 continue
 
         # Calculate quadrant coordinates based on the scores
-        self.calculate_quadrant_coordinates() # IS GOOD
+        self.calculate_quadrant_coordinates()
 
-        ax_number = 10
+        # Determine the number visible on the axis
+        num_on_axis = 10
 
         # Determine the largest quadrant
-        biggest_quadrant = self.calculate_biggest_quadrant() # IS GOOD
+        dominant_styles = self.get_dominant_styles()
+
+        # Show the results
+        self.show_behavior_results(dominant_styles)
 
         # Inner lines and labels
-        for i in range(1, ax_number):
-            plt.plot([i, -i], [0, 0], color='gray', linestyle='dotted', linewidth=0.5)
-            plt.plot([0, 0], [i, -i], color='gray', linestyle='dotted', linewidth=0.5)
+        for i in range(1, num_on_axis):
+            plt.plot([i, -i], [0, 0], color='gray',
+                     linestyle='dotted', linewidth=0.5)
+            plt.plot([0, 0], [i, -i], color='gray',
+                     linestyle='dotted', linewidth=0.5)
 
         # Quadrant lines (The Grid)
-        plt.plot([0, 0], [-ax_number, ax_number], color='black', linewidth=0.8)
-        plt.plot([-ax_number, ax_number], [0, 0], color='black', linewidth=0.8)
+        plt.plot([0, 0], [-num_on_axis, num_on_axis],
+                 color='black', linewidth=0.8)
+        plt.plot([-num_on_axis, num_on_axis], [0, 0],
+                 color='black', linewidth=0.8)
+
+        # Split the dominant_styles string into a list
+        dominant_styles_list = dominant_styles.split('-')
 
         # Add labels to quadrants with references
         for label, (key, x, y) in {'Thinker': ('I', -0.5, -0.5), 'Social': ('S', 0.5, 0.5),
                                    'Directive': ('D', 0.5, -0.5), 'Relator': ('O', -0.5, 0.5)}.items():
-            weight = 'bold' if label == biggest_quadrant else 'normal'
-            plt.text(ax_number * x, ax_number * y, label, color='black', ha='center', va='center', fontweight=weight)
+            # Check if the current label is the same as the first style in dominant_styles_list
+            weight = 'bold' if label == dominant_styles_list[0] else 'normal'
+            plt.text(num_on_axis * x, num_on_axis * y, label,
+                     color='black', ha='center', va='center', fontweight=weight)
 
         # Plot values of I, O, D, S against inner grid
         plt.scatter(-self.scores['I'], 0)
@@ -141,16 +236,17 @@ class BehaviorStyleTest:
         plt.yticks([])
 
         # Add numbers to the middle of the grid lines
-        for i in range(1, ax_number):
+        for i in range(1, num_on_axis):
             plt.text(i, -0.5, str(i), color='black', ha='center', va='center')
             plt.text(-i, -0.5, str(i), color='black', ha='center', va='center')
             plt.text(-0.5, i, str(i), color='black', ha='center', va='center')
             plt.text(-0.5, -i, str(i), color='black', ha='center', va='center')
 
-        plt.xlim(-ax_number, ax_number)
-        plt.ylim(-ax_number, ax_number)
+        plt.xlim(-num_on_axis, num_on_axis)
+        plt.ylim(-num_on_axis, num_on_axis)
         plt.show()
 
+# Run the test
 if __name__ == "__main__":
-    test = BehaviorStyleTest()
-    test.run_test()
+    run = BehaviorStyleTest()
+    run.behavior_style_assesment()
